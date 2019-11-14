@@ -2,6 +2,7 @@
 #include <iostream>
 #include <fstream>
 using namespace std;
+/*Basado en https://josemontanac.github.io/Laboratorio-Metodos-Computacionales/2/Ordinary%20differential%20equations%20(ODE).slides.html#/10*/
 
 const double k = 0.7;
 const double v0y =10;
@@ -11,10 +12,10 @@ const double g = 9.8;
 const double dt = 0.01;
 const double T = 2*v0y/g;
 
-double velocidady(double t, double y, double vy); 
-double aceleraciony(double t, double y, double vy);
-double velocidadx(double t, double x, double vx ); 
-double aceleracionx(double t, double x, double vx); 
+double velocidady(double t,double y, double vy, double x,double vx); 
+double aceleraciony(double t,double y, double vy, double x,double vx);
+double velocidadx(double t,double y, double vy, double x,double vx); 
+double aceleracionx(double t,double y, double vy, double x,double vx); 
 void rk4(double t, double dt, double &y, double &vy, double &x, double &vx);
 
 int main()

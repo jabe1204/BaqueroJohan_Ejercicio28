@@ -3,13 +3,16 @@
 #include <fstream>
 using namespace std;
 
-const double k = 0.9;
-const double masa = 10;
-const double angulo = 35.0;
-const double v0 = 22.0;
+const double k = 0.7;
+const double v0y =10;
+const double v0x = 10;
+const double angulo = 34.0;
 const double g = 9.8;
 const double dt = 0.01;
+const double T = 2*v0y/g;
 
+double Vy(double t);
+double Vx();
 double velocidady(double t, double y, double vy); 
 double aceleraciony(double t, double y, double vy);
 double velocidadx(double t, double x, double vx ); 
@@ -18,30 +21,28 @@ void rk4(double t, double dt, double &y, double &vy, double &x, double &vx);
 
 int main()
 {
-  double x, v, time;
-  x = 1;
-  v = 0;
-  for(time = 0; time <= 10; time += DeltaT) 
+	double x,vx,y,vy,time;
+	time = 0.0;
+	x = 0.0;
+	y = 0.0;
+	vx = Vx();
+	vy = Vy(time);
+	for(time = 0; time <= T; time += dt) 
   {
-    cout << time << "\t" << x << "\t" << v << endl;
-    rk4(time, DeltaT, x, v);
+    cout <<" " << x << " " << y << endl;
+    rk4(time, dt, y, vy, x, vx);
   }
   return 0;
 }
 
-double v0y()
+double Vy(double t)
 {
-    return v0*sin(angulo*M_PI/180.0);
+    return v0y - g*t;
 }
 
-double Vely(double t)
+double Vx()
 {
-    return v0y-g*t;
-}
-
-double Velx()
-{
-    return v0*cos(angulo*M_PI/180.0);
+    return v0x;
 }
 
 double velocidady(double t, double y0, double y1)
@@ -51,7 +52,7 @@ double velocidady(double t, double y0, double y1)
 
 double aceleraciony(double t, double y0, double y1)
 {
-  return -g-k*Vely(t)*Vely(t)/sqrt(Velx*Velx + Vely(t)*Vely(t));
+  return -g-k*Vy(t)*(Vy(t)/sqrt(Vx()*Vx() + Vy(t)*Vy(t)));
 }
 
 double velocidadx(double t,double x0,double x1)
@@ -60,20 +61,32 @@ double velocidadx(double t,double x0,double x1)
 }
 double aceleracionx(double t,double x0, double x1)
 {
-    return -k*Velx*Velx/sqrt(Velx*Velx + Vely(t)*Vely(t));
+    return -k*Vx()*(Vx()/sqrt(Vx()*Vx() + Vy(t)*Vy(t)));
 }
 void rk4(double t, double dt, double &y, double &vy, double &x, double &vx) 
 {
-  double k10, k11, k20, k21, k30, k31, k40, k41;
-  k10 = dt*velocidady(t, y0, y1);
-  k11 = dt*aceleraciony(t, y0, y1);
-  k20 = dt*velocidady(t+h/2, y0 + k10/2, y1 + k11/2);
-  k21 = dt*aceleraciony(t+h/2, y0 + k10/2, y1 + k11/2);
-  k30 = dt*velocidady(t+h/2, y0 + k20/2, y1 + k21/2);
-  k31 = dt*aceleraciony(t+h/2, y0 + k20/2, y1 + k21/2);
-  k40 = dt*velocidady(t + h, y0 + k30, y1 + k31);
-  k41 = dt*aceleraciony(t + h, y0 + k30, y1 + k31);
-
-  y = y + (1.0/6.0)*(k10 + 2*k20 + 2*k30 + k40);
-  vy = vy + (1.0/6.0)*(k11 + 2*k21 + 2*k31 + k41);
+    double k1y, k1vy, k2y, k2vy, k3y, k3vy, k4y, k4vy;
+    double k1x, k1vx, k2x, k2vx, k3x, k3vx, k4x, k4vx;
+    k1x = dt*velocidadx(t, x, vx);
+    k1vx = dt*aceleracionx(t, x, vx);
+    k2x = dt*velocidadx(t+dt/2, x + k1x/2, vx + k1vx/2);
+    k2vx = dt*aceleracionx(t+dt/2, x + k1x/2, vx + k1vx/2);
+    k3x = dt*velocidadx(t+dt/2, x + k2x/2, vx + k2vx/2);
+    k3vx = dt*aceleracionx(t+dt/2, x + k2x/2, vx + k2vx/2);
+    k4x = dt*velocidadx(t + dt,x + k3x, vx + k3vx);
+    k4vx = dt*aceleracionx(t + dt, x + k3x, vx + k3vx);
+    
+    k1y = dt*velocidady(t, y, vy);
+    k1vy = dt*aceleraciony(t, y, vy);
+    k2y = dt*velocidady(t+dt/2, y + k1y/2, vy + k1vy/2);
+    k2vy = dt*aceleraciony(t+dt/2, y + k1y/2, vy + k1vy/2);
+    k3y = dt*velocidady(t+dt/2, y + k2y/2, vy + k2vy/2);
+    k3vy = dt*aceleraciony(t+dt/2, y + k2y/2, vy + k2vy/2);
+    k4y = dt*velocidady(t + dt, y + k3y, vy + k3vy);
+    k4vy = dt*aceleraciony(t + dt, y + k3y, vy + k3vy);
+    
+    x = x + (1.0/6.0)*(k1x + 2*k2x + 2*k3x + k4x);
+	y = y + (1.0/6.0)*(k1y + 2*k2y + 2*k3y + k4y);
+    vx = vx + (1.0/6.0)*(k1vx + 2*k2vx + 2*k3vx + k4vx);
+    vy = vy + (1.0/6.0)*(k1vy + 2*k2vy + 2*k3vy + k4vy);
 }
